@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020"><title>My Progress Hub</title>
+<style>
+:root{--bg:#0b1020;--panel:#151d32;--panel2:#1c2740;--txt:#edf2ff;--muted:#9aa8c7;--line:#2a3652;--accent:#8b9cff;--green:#55d6a3}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px system-ui}header{padding:24px 18px 16px;background:linear-gradient(135deg,#182747,#10182b)}h1{font-size:24px;margin:0 0 5px}p{color:var(--muted);margin:4px 0}.wrap{padding:14px;max-width:760px;margin:auto}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}.stat b{font-size:24px;display:block}.tabs{display:flex;gap:8px;overflow:auto;margin:14px 0}.tabs button,.btn{border:0;border-radius:10px;padding:10px 13px;background:var(--panel2);color:var(--txt);white-space:nowrap}.tabs button.active,.primary{background:var(--accent);color:#0b1020;font-weight:700}input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0e1729;color:var(--txt);margin:6px 0 10px}label{font-size:13px;color:var(--muted)}.row{display:flex;gap:8px}.row>*{flex:1}.task{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.task:last-child{border:0}.task span{flex:1}.done{text-decoration:line-through;color:var(--muted)}.small{font-size:12px;color:var(--muted)}.bar{height:8px;background:#28334d;border-radius:8px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:var(--green)}.hidden{display:none}button{cursor:pointer}
+</style></head><body>
+<header><div class="wrap"><div class="small">YOUR STUDY • COLLEGE • LIFE DASHBOARD</div><h1>My Progress Hub</h1><p>Small daily progress. Consistent results.</p></div></header>
+<main class="wrap">
+<div class="stats">
+ <div class="card stat"><div class="small">Today's study</div><b id="mins">0 min</b><p>Goal: 180 minutes</p><div class="bar"><i id="studybar" style="width:0%"></i></div></div>
+ <div class="card stat"><div class="small">Tasks completed</div><b id="completed">0</b><p id="total">0 total tasks</p></div>
+</div>
+<div class="tabs">
+<button class="active" data-tab="dashboard">Overview</button><button data-tab="tasks">Tasks</button><button data-tab="syllabus">Exam tracker</button><button data-tab="mocks">Mock tests</button><button data-tab="study">Study log</button>
+</div>
+<section id="dashboard">
+ <div class="card"><h3>Today's focus</h3><p>Banking preparation + college + personal priorities.</p><div id="focus"></div></div>
+ <div class="card"><h3>Progress by area</h3><div id="areas"></div></div>
+ <div class="card"><h3>Quick backup</h3><p class="small">Export your data regularly so it stays safe if you change phones.</p><button class="btn primary" onclick="exportData()">Export backup</button> <button class="btn" onclick="document.getElementById('restore').click()">Import backup</button><input id="restore" type="file" accept="application/json" class="hidden" onchange="importData(event)"></div>
+</section>
+<section id="tasks" class="hidden">
+ <div class="card"><h3>Add a task</h3><input id="taskName" placeholder="e.g. Percentage practice - 30 questions"><div class="row"><select id="taskArea"><option>Banking</option><option>Other Govt Exams</option><option>College</option><option>Personal</option></select><select id="taskPriority"><option>High</option><option>Medium</option><option>Low</option></select></div><button class="btn primary" onclick="addTask()">Add task</button></div>
+ <div class="card"><h3>My tasks</h3><div id="taskList"></div></div>
+</section>
+<section id="syllabus" class="hidden"><div class="card"><h3>Banking syllabus tracker</h3><p class="small">Tap a topic to mark it complete. Your progress is saved on this phone.</p><div id="topics"></div></div></section>
+<section id="mocks" class="hidden">
+ <div class="card"><h3>Record mock test</h3><label>Exam / mock name</label><input id="mockName" placeholder="SBI Clerk Prelims Mock 1"><div class="row"><div><label>Score</label><input id="mockScore" type="number" placeholder="e.g. 62"></div><div><label>Maximum marks</label><input id="mockMax" type="number" placeholder="100"></div></div><div class="row"><div><label>Attempted</label><input id="mockAttempt" type="number" placeholder="80"></div><div><label>Correct</label><input id="mockCorrect" type="number" placeholder="65"></div></div><button class="btn primary" onclick="addMock()">Save mock</button></div>
+ <div class="card"><h3>Mock history</h3><div id="mockList"></div></div>
+</section>
+<section id="study" class="hidden">
+ <div class="card"><h3>Log study time</h3><label>Minutes studied today</label><input id="studyMinutes" type="number" placeholder="e.g. 45"><button class="btn primary" onclick="logStudy()">Add study time</button></div>
+ <div class="card"><h3>Study log</h3><div id="studyHistory"></div></div>
+</section>
+</main>
+<script>
+const key='mph_android_v1';
+const defaultTopics=['Simplification','Number Series','Quadratic Equations','Percentage','Ratio & Proportion','Profit & Loss','SI & CI','Time & Work','Speed, Time & Distance','Data Interpretation','Puzzles','Seating Arrangement','Syllogism','Inequality','Coding-Decoding','Blood Relations','Direction Sense','English Reading Comprehension','Cloze Test','Error Detection','Banking Awareness','Current Affairs','Computer Basics'];
+let data=JSON.parse(localStorage.getItem(key)||'null')||{tasks:[],topics:{},mocks:[],logs:[]};
+function save(){localStorage.setItem(key,JSON.stringify(data));render()}
+function today(){return new Date().toISOString().slice(0,10)}
+function addTask(){let n=taskName.value.trim();if(!n)return;data.tasks.push({id:Date.now(),name:n,area:taskArea.value,priority:taskPriority.value,done:false,date:today()});taskName.value='';save()}
+function toggleTask(id){let t=data.tasks.find(x=>x.id===id);t.done=!t.done;save()}
+function delTask(id){data.tasks=data.tasks.filter(x=>x.id!==id);save()}
+function addMock(){let name=mockName.value.trim(),score=+mockScore.value,max=+mockMax.value,attempt=+mockAttempt.value,correct=+mockCorrect.value;if(!name||!max)return;data.mocks.unshift({name,score,max,attempt,correct,date:today()});save();mockName.value=mockScore.value=mockMax.value=mockAttempt.value=mockCorrect.value=''}
+function logStudy(){let m=+studyMinutes.value;if(m<=0)return;let l=data.logs.find(x=>x.date===today());if(l)l.minutes+=m;else data.logs.unshift({date:today(),minutes:m});studyMinutes.value='';save()}
+function exportData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='my-progress-hub-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);save()}catch(err){alert('Invalid backup file')}};r.readAsText(f)}
+function render(){
+let todayLog=data.logs.find(x=>x.date===today()),mins=todayLog?.minutes||0;
+document.getElementById('mins').textContent=mins+' min';document.getElementById('studybar').style.width=Math.min(100,mins/180*100)+'%';
+let done=data.tasks.filter(t=>t.done).length;document.getElementById('completed').textContent=done;document.getElementById('total').textContent=data.tasks.length+' total tasks';
+document.getElementById('taskList').innerHTML=data.tasks.map(t=>`<div class="task"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})"><span class="${t.done?'done':''}">${esc(t.name)}<div class="small">${esc(t.area)} • ${esc(t.priority)}</div></span><button class="btn" onclick="delTask(${t.id})">✕</button></div>`).join('')||'<p>No tasks yet.</p>';
+document.getElementById('focus').innerHTML=data.tasks.filter(t=>!t.done).slice(0,4).map(t=>`<p>• ${esc(t.name)}</p>`).join('')||'<p>Nothing pending. Add your next task.</p>';
+let areas=['Banking','Other Govt Exams','College','Personal'];document.getElementById('areas').innerHTML=areas.map(a=>{let x=data.tasks.filter(t=>t.area===a),d=x.filter(t=>t.done).length,p=x.length?Math.round(d/x.length*100):0;return `<p>${a}: ${d}/${x.length} (${p}%)</p><div class="bar"><i style="width:${p}%"></i></div>`}).join('');
+document.getElementById('topics').innerHTML=defaultTopics.map(t=>`<div class="task"><input type="checkbox" ${data.topics[t]?'checked':''} onchange="data.topics['${t}']=this.checked;save()"><span class="${data.topics[t]?'done':''}">${t}</span></div>`).join('');
+document.getElementById('mockList').innerHTML=data.mocks.map(m=>`<div class="task"><span><b>${esc(m.name)}</b><div class="small">${m.date} • ${m.score}/${m.max} • Accuracy: ${m.attempt?Math.round(m.correct/m.attempt*100):0}%</div></span></div>`).join('')||'<p>No mock tests recorded.</p>';
+document.getElementById('studyHistory').innerHTML=data.logs.slice(0,14).map(l=>`<p>${l.date}: <b>${l.minutes} min</b></p>`).join('')||'<p>No study time logged yet.</p>';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));document.getElementById(b.dataset.tab).classList.remove('hidden')});
+render();
+</script></body></html>
